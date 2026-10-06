@@ -3,6 +3,8 @@ on:
   workflow_dispatch:
   push:
     branches: [main, master]
+permissions:
+  contents: write
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -16,6 +18,10 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: android-actions/setup-android@v3
+        with:
+          packages: ''
+      - name: Instalar plataforma Android
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
       - name: Preparar projeto
         run: |
           mkdir -p www
@@ -33,4 +39,10 @@ jobs:
         with:
           name: neon-strike-rivals-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Publicar na aba Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk NeonStrikeRivals.apk
+          gh release create "v${{ github.run_number }}" NeonStrikeRivals.apk --title "Neon Strike Rivals v${{ github.run_number }}" --notes "APK de teste"
           
